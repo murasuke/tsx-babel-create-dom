@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>babel/standaloneでjsxをトランスパイルするテンプレート</title>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    // babelでjsxをトランスパイル可能にするため、プライグイン[transform-react-jsx]を
+    // 読み込んだプリセット「jsx」を登録します
+    Babel.registerPreset('jsx', {
+      presets: [
+        [Babel.availablePresets['env']]
+      ],
+      plugins: [
+          [Babel.availablePlugins['transform-react-jsx']]
+      ],
+    });
+  </script>
+
+</head>
+<body>
+  <div id="app"></div>
+  <!--
+    type="text/babel" ⇒ babelにトランスパイル対象であることを伝える(ブラウザからは無視されます)
+    data-presets="jsx" ⇒ 上記で登録したプリセットでトランスパイルします
+   -->
+  <script type="text/babel" data-presets="jsx" >
+    const elements = <p><strong>要素の追加テストです。</strong></p>;
+    document.getElementById('app').appendChild(elements);
+  </script>
+</body>
+</html>
