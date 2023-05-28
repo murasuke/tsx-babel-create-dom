@@ -12,13 +12,14 @@
 
 こんなに便利なのに、古いWebアプリ(jQuery等)と一緒に使われている所を見たことがありません。
 
-なぜなら、ReactやVueを使わずに独自でDOM生成を行うライブラリを見かけないためだと考えました。
+なぜなら、ReactやVueを使わずに独自でDOM生成を行うライブラリを見かけないためだと考えました（需要がないともいう）
 
 そこで、JSXのみ(ライブラリ未使用)でDOMを生成する方法を考えてみます(jQueryと組み合わて使うことはできます)
 
 ※TypeScriptを使えば、属性(型)のチェックも同時に行うことができますが、複雑になるためこの記事では扱いません。パート2で記載する予定
 
-* やりたいことは下記のように、文字列で追加するのをやめて、jsxで追加することです
+
+### やりたいことは下記のように、文字列で追加するのをやめて、jsxで追加できるようにすることです
 ```javascript
 // jQueryで追加する場合
  $('#app').append('<p><strong>要素の追加テストです。</strong></p>');
@@ -33,7 +34,7 @@
 
 ### 確認の手順
 * 単一のhtmlファイルのみで動くようにするため[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用してトランスパイルを行います
-* jsxがどのように変換されるか(関数呼び出しに変換される)確認します
+* jsxがどのように変換されるか(どのような関数呼び出しに変換される)確認します
 * DOMを生成する関数を定義して「`要素の追加テストです。`」が太字で表示されることを確認します
 
 ※`babel/standalone`は、ブラウザ内でトランスパイルを行うことができるライブラリ
@@ -47,16 +48,15 @@ https://qiita.com/murasuke/items/8dbe350c0c1c1fe269bf
 
 JSXがどのように変換されるかを確認します。
 
-通常、jsxをトランスパイルするためには[babel](https://babeljs.io/)や[TypeScript](https://www.typescriptlang.org/)を利用しますが、
-トランスパイル＋実行の手順が少々面倒です。
+通常、jsxをトランスパイルするためには[babel](https://babeljs.io/)や[TypeScript](https://www.typescriptlang.org/)を利用しますが、トランスパイル＋実行の手順が少々面倒です。
 
-そこで[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用して1つのHTMLファイルのみで実行できるようにします。
+そこで[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用して1つのHTMLファイルのみで実行、動作確認ができるようにします。
 
-* webサーバー不要(htmlファイルをダブルクリックするだけで実行可能))
-* TypeScriptやtsxも実行できる(オプション次第)
+* 別スクリプトを読み込まないためwebサーバー不要(htmlファイルをダブルクリックするだけで実行可能)
+* コンパイルオプションを変更すれば、TypeScriptやtsxも実行可能（今回はやりません。詳細は[babel/standaloneの使い方](https://qiita.com/murasuke/items/8dbe350c0c1c1fe269bf)や、[babel/standalone本家](https://babeljs.io/docs/en/babel-standalone)をご確認ください）
 
 
-### テンプレートhtml (DOM生成関数がないため、エラーになります。この後追加)
+### テンプレートhtml (DOM生成関数がないためエラーになります。この後、ファイルを修正してきます)
 ```html
 <!DOCTYPE html>
 <head>
