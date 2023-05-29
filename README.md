@@ -1,8 +1,8 @@
 # JSXを利用したDOM生成ライブラリの作成方法(パート1)
 
-この記事はJSXのみを利用したDOM生成のやり方を解説します
+この記事はJSX（＋Vanilla JavaScript）を利用したDOM生成のやり方を解説します。長くなるので前半と後半に分けて解説します。
 
-パート1：babelを利用し単一htmlファイル内で最低限の動作確認を行う
+パート1：[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用し、最低限の実装と動作確認を単一のhtmlファイルで行う
 
 パート2：TypeScriptを使いjsxの型定義を行う
 
@@ -19,7 +19,7 @@
 ※TypeScriptを使えば、属性(型)のチェックも同時に行うことができますが、複雑になるためこの記事では扱いません。パート2で記載する予定
 
 
-### やりたいことは下記のように、文字列で追加するのをやめて、jsxで追加できるようにすることです
+### やりたいことは下記のように、文字列で追加するのをやめてjsxで追加できるようにすることです
 ```javascript
 // jQueryで追加する場合
  $('#app').append('<p><strong>要素の追加テストです。</strong></p>');
@@ -35,7 +35,7 @@
 ### 確認の手順
 * 単一のhtmlファイルのみで動くようにするため[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用してトランスパイルを行います
 * jsxがどのように変換されるか(どのような関数呼び出しに変換される)確認します
-* DOMを生成する関数を定義して「`要素の追加テストです。`」が太字で表示されることを確認します
+* DOMを生成する関数を定義してjsxから変換された「`要素の追加テストです。`」が太字で表示されることを確認します
 
 ※`babel/standalone`は、ブラウザ内でトランスパイルを行うことができるライブラリ
 
@@ -48,15 +48,16 @@ https://qiita.com/murasuke/items/8dbe350c0c1c1fe269bf
 
 JSXがどのように変換されるかを確認します。
 
-通常、jsxをトランスパイルするためには[babel](https://babeljs.io/)や[TypeScript](https://www.typescriptlang.org/)を利用しますが、トランスパイル＋実行の手順が少々面倒です。
+通常、jsxをトランスパイルするためには[babel](https://babeljs.io/)や[TypeScript](https://www.typescriptlang.org/)を利用して事前に変換しますが、トランスパイル＋実行の手順が少々面倒です。
 
-そこで[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用して1つのHTMLファイルのみで実行、動作確認ができるようにします。
+そこで[babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用して1つのHTMLファイル内で実行、動作確認ができるようにします。
 
-* 別スクリプトを読み込まないためwebサーバー不要(htmlファイルをダブルクリックするだけで実行可能)
+* 別スクリプトを読み込まないためwebサーバーが不要です(htmlファイルをダブルクリックするだけで実行可能)
 * コンパイルオプションを変更すれば、TypeScriptやtsxも実行可能（今回はやりません。詳細は[babel/standaloneの使い方](https://qiita.com/murasuke/items/8dbe350c0c1c1fe269bf)や、[babel/standalone本家](https://babeljs.io/docs/en/babel-standalone)をご確認ください）
 
 
-### テンプレートhtml (DOM生成関数がないためエラーになります。この後、ファイルを修正してきます)
+### [babel/standalone](https://babeljs.io/docs/en/babel-standalone)を利用したテンプレートhtml
+
 ```html
 <!DOCTYPE html>
 <head>
@@ -94,7 +95,7 @@ JSXがどのように変換されるかを確認します。
 
 ※テンプレート.htmlを実行すると実行時エラーが発生します（`React is not defined`）
 
-　⇒DOM生成関数が未定義のため。JSXが`React.createElement()`という関数に変換されるためです
+　⇒DOM生成関数が未定義のためです。JSXが`React.createElement()`という関数に変換されまています(babelのjsx変換関数デフォルト設定)
 
 ![img](./img/img00.png)
 
@@ -105,14 +106,13 @@ var elements = /*#__PURE__*/React.createElement("p", null,
             );
 ```
 
-`React.createElement()`という関数名を定義しても良いですが、Reactを使うわけではないのでbableの設定を変更して、別の関数名(`h()`)に変更し、その関数を定義していきます
-
+`React.createElement()`という関数名を定義しても良いですが、紛らわしいのでbableの設定を変更して、別の関数名(`h()`)に変更して、その関数を定義します
 
 ## ②DOM生成関数を定義して、実行エラーを解消する
-②ではbabelの設定を変更して自作のDOM生成関数を呼び出すようにしてみます
+babelの設定を変更し、自作のDOM生成関数を追加します。
 
  1. Babelの設定を変更して、jsx変換後の関数を`h()`にする
- 1. DOMを生成する関数`h(tagName, props,  ...children)`を作る
+ 1. DOMを生成する関数`h(tagName, props,  ...children)`を追加する
  1. jsxからDOMオブジェクトが生成されることを確認する
  1. (おまけ)独自コンポーネントを生成できるように`h()`関数を修正する
 
@@ -140,10 +140,10 @@ jsxをbabelでトランスパイルすると、標準では`React.createElement(
   </script>
 ```
 * `pragma:'h'`：jsxを変換した後の`関数名`を`h()`に変更
-* `pragmaFrag: 'div'` ：jsxフラグメント`<> </>`を`<div>`に置き換える
+* `pragmaFrag: '"div"'` ：jsxフラグメント`<> </>`を`<div>`に置き換える
 
 
-設定変更により、babelでトランスパイルした結果が以下のように変わります
+設定変更により、babelでトランスパイルした結果が変わります
 
 jsx変換前のソース
 ```javascript
@@ -203,7 +203,7 @@ tagについて（※独自コンポーネントのサポートは後で行う�
 // 独自コンポーネント
 <CustomComponent />
 // ↓のように変換される
-var elements = /*#__PURE__*/React.createElement(CustomComponent, null, "text");
+var elements = /*#__PURE__*/h(CustomComponent, null);
 ```
 
 propsについて
@@ -214,7 +214,7 @@ h('div',{style: {backgroundColor: 'red'}, onclick={() => alert('test')}}, 'text'
 
 
 
-仕様を踏まえて、DOM生成関数を作ります
+上記仕様を踏ま得るとこのような関数になります
 ```javascript
 function h(tag, props, ...children) {
   // elementを作成
@@ -381,9 +381,9 @@ jsxでは独自タグ(コンポーネント)を作ることができます。
 
 * 大文字で始まるタグが同名の関数呼び出しに変換される
 ```jsx
-  var elements = <StrongAnchor href="https://npm.im/hyperscript" target="_blank">
-    open hyperscript page
-  </StrongAnchor>
+  var elements = <StrongAnchor href="https://babeljs.io/docs/en/babel-standalone" target="_blank">
+                    babel/standalone
+                  </StrongAnchor>
 ```
 
 トランスパイル後 (`h()`の引数として、`StrongAnchor`という関数が渡されるようになる)
@@ -393,7 +393,7 @@ var elements = h(StrongAnchor, {
   target: "_blank"
 }, "babel/standalone");
 ```
-上記の変換後コードを動かすために、下記の変更を行います
+上記のトランスパイル後コードを動かすために、下記の変更を行います
 1. (大文字で始まる)タグ名と同じ関数を定義する
 1. 関数が`h()`に引き渡された場合、その関数を呼び出す
 
@@ -557,3 +557,8 @@ tagが関数の場合は、その関数を呼び出す処理を追加します
 </html>
 ```
 
+※jQueryでDOMを追加するのであれば以下のように記載します
+
+```javascript
+$('#app').append(elements);
+```
